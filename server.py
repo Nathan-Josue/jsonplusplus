@@ -1,9 +1,9 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, Response, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any
-from encoder import detect_type, pack_column
+from logical.encoder import detect_type, pack_column
 import io
 import os
 import orjson
@@ -26,12 +26,13 @@ class PreviewRequest(BaseModel):
 
 # Fonction helper pour servir les fichiers HTML
 def get_html_file(filename: str) -> str:
+
     """Récupère le contenu d'un fichier HTML depuis le dossier template"""
     base_dir = os.path.dirname(os.path.abspath(__file__))
     html_path = os.path.join(base_dir, 'template /', filename)
     
     if not os.path.exists(html_path):
-        # Essayer aussi sans espace
+        # Essayer aussi sans espace*
         html_path_alt = os.path.join(base_dir, 'template', filename)
         if os.path.exists(html_path_alt):
             html_path = html_path_alt
@@ -49,6 +50,32 @@ def get_html_file(filename: str) -> str:
             status_code=500,
             detail=f"Erreur lors de la lecture de {filename}: {str(e)}"
         )
+
+# Fonction helper pour obtenir le chemin des fichiers statiques
+def get_static_file_path(relative_path: str) -> str:
+    """Retourne le chemin absolu d'un fichier statique"""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Essayer avec espace dans le nom du dossier
+    file_path = os.path.join(base_dir, 'template /', relative_path)
+    if os.path.exists(file_path):
+        return file_path
+    
+    # Essayer sans espace
+    file_path_alt = os.path.join(base_dir, 'template', relative_path)
+    if os.path.exists(file_path_alt):
+        return file_path_alt
+    
+    # Essayer à la racine (pour assets)
+    file_path_root = os.path.join(base_dir, relative_path)
+    if os.path.exists(file_path_root):
+        return file_path_root
+    
+    # Fichier non trouvé
+    raise HTTPException(
+        status_code=404, 
+        detail=f"Fichier {relative_path} non trouvé. Cherché: '{file_path}', '{file_path_alt}', '{file_path_root}'"
+    )
 
 # Fonction pour décoder JONX depuis des bytes en mémoire
 def decode_jonx_from_bytes(data):
@@ -137,6 +164,38 @@ async def contact():
     """Sert la page Contact"""
     content = get_html_file('contact.html')
     return HTMLResponse(content=content)
+
+# Routes pour servir les fichiers statiques (CSS, images, etc.)
+@app.get("/stylesheet/{filename}")
+async def serve_stylesheet(filename: str):
+    """Sert les fichiers CSS depuis le dossier stylesheet"""
+    try:
+        file_path = get_static_file_path(f'stylesheet/{filename}')
+        return FileResponse(file_path, media_type='text/css')
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/assets/{file_path:path}")
+async def serve_assets(file_path: str):
+    """Sert les fichiers assets (images, etc.)"""
+    try:
+        file_path_full = get_static_file_path(f'assets/{file_path}')
+        # Détecter le type MIME selon l'extension
+        if file_path.endswith('.png'):
+            media_type = 'image/png'
+        elif file_path.endswith('.svg'):
+            media_type = 'image/svg+xml'
+        elif file_path.endswith('.jpg') or file_path.endswith('.jpeg'):
+            media_type = 'image/jpeg'
+        else:
+            media_type = 'application/octet-stream'
+        return FileResponse(file_path_full, media_type=media_type)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/decode")
 async def decode(file: UploadFile = File(...)):

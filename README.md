@@ -124,10 +124,10 @@ Les colonnes numériques (int32, float32) génèrent automatiquement un index tr
 ### encoder.py
 
 ```python
-from encoder import jonx_encode
+from logical.encoder import jonx_encode
 
 # Convertir un fichier JSON en JONX
-jonx_encode("data.json", "data_jonx.json++")
+jonx_encode("data/json/data.json", "json++/data_jonx.json++")
 ```
 
 **Exemple de JSON d'entrée :**
@@ -145,10 +145,10 @@ jonx_encode("data.json", "data_jonx.json++")
 ### decoder.py
 
 ```python
-from decoder import JONXFile
+from logical.decoder import JONXFile
 
 # Charger un fichier JONX
-jonx_file = JONXFile("data_jonx.json++")
+jonx_file = JONXFile("json++/data_jonx.json++")
 
 # Accéder à une colonne
 prices = jonx_file.get_column("price")
@@ -266,14 +266,14 @@ Prévisualise les métadonnées d'un JSON sans générer le fichier JONX.
 ### Exemple complet : Encoder puis décoder
 
 ```python
-from encoder import jonx_encode
-from decoder import JONXFile
+from logical.encoder import jonx_encode
+from logical.decoder import JONXFile
 
 # 1. Encoder un JSON en JONX
-jonx_encode("data.json", "data_jonx.json++")
+jonx_encode("data/json/data.json", "json++/data_jonx.json++")
 
 # 2. Charger le fichier JONX
-jonx_file = JONXFile("data_jonx.json++")
+jonx_file = JONXFile("json++/data_jonx.json++")
 
 # 3. Accéder aux métadonnées
 print(f"Colonnes: {jonx_file.fields}")
@@ -294,7 +294,7 @@ print(f"Prix minimum: {min_price}")
 import requests
 
 # Décoder un fichier JONX
-with open("data_jonx.json++", "rb") as f:
+with open("json++/data_jonx.json++", "rb") as f:
     response = requests.post(
         "http://localhost:8000/api/decode",
         files={"file": f}
