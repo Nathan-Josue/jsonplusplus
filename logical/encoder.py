@@ -84,4 +84,3 @@ def jonx_encode(json_path, jonx_path):
             f.write(idx)
 
     print(f"✅ Fichier JSON++ (JONX) créé avec {len(fields)} colonnes et {len(data)} lignes")
-
