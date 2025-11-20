@@ -1,0 +1,6 @@
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+orjson>=3.9.0
+zstandard>=0.21.0
+python-multipart>=0.0.6
+
