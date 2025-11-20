@@ -1,16 +1,15 @@
-# This is a sample Python script.
+from decoder import JONXFile
+from encoder import jonx_encode
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+# Encoder
+jonx_encode("data.json", "data_jonx.json++")
 
+# Charger le fichier JONX
+jonx_file = JONXFile("data_jonx.json++")
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+# Accéder à la colonne "price"
+col_prices = jonx_file.get_column("price")
 
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+# Trouver le prix minimum en utilisant l'index si disponible
+min_price = jonx_file.find_min("price", col_prices, use_index=True)
+print("Produit le moins cher :", min_price)

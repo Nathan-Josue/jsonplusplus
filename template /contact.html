@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JONX - Contact</title>
+
+  <style>
+:root {
+  --dark: #0f0f0f;
+  --dark-surface: #1a1a1a;
+  --dark-panel: #161616;
+  --dark-border: #2a2a2a;
+  --accent: #00d9a3;
+  --accent-dark: #00b386;
+  --accent-glow: rgba(0, 217, 163, 0.2);
+  --text-light: #e5e7eb;
+  --text-muted: #9ca3af;
+  --text-darker: #6b7280;
+  --success: #10b981;
+  --error: #ef4444;
+}
+
+body {
+  background: linear-gradient(135deg, var(--dark) 0%, #1a1a2e 100%);
+  color: var(--text-light);
+  min-height: 100vh;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+.nav-header {
+  background: var(--dark-panel);
+  border-bottom: 1px solid var(--dark-border);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent) 0%, #00ffc8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+
+.nav-logo:hover {
+  transform: scale(1.05);
+}
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+.nav-link {
+  color: var(--text-light);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--accent);
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-link.active {
+  color: var(--accent);
+}
+
+.nav-link.active::after {
+  width: 100%;
+}
+
+.nav-cta {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  color: var(--dark);
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px var(--accent-glow);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px var(--accent-glow);
+}
+
+.nav-cta::before {
+  content: '☕';
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .nav-links {
+    gap: 16px;
+  }
+
+  .nav-link {
+    font-size: 0.85rem;
+  }
+
+  .nav-cta {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 60px 24px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent) 0%, #00ffc8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 40px var(--accent-glow);
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 400;
+}
+
+.panel {
+  background: var(--dark-panel);
+  border: 1px solid var(--dark-border);
+  border-radius: 16px;
+  padding: 28px;
+  margin-top: 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4), 0 0 1px rgba(255,255,255,0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.panel:hover::before {
+  opacity: 0.6;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
+}
+
+.btn {
+  padding: 14px 28px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  color: var(--dark);
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 8px;
+  box-shadow: 0 4px 16px var(--accent-glow);
+  width: 100%;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px var(--accent-glow);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+  </style>
+</head>
+
+<body>
+
+  <!-- Navigation identique avec lien actif sur Contacter -->
+  <nav class="nav-header">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">JONX</a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">Accueil</a>
+        <a href="about.html" class="nav-link">À propos</a>
+        <a href="contact.html" class="nav-link active">Contacter</a>
+      </div>
+      <a href="https://buymeacoffee.com/yourname" target="_blank" class="nav-cta">Buy Me a Coffee</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <header class="header">
+      <h1 class="title">Contactez-nous</h1>
+      <p class="subtitle">Une question ? Une suggestion ? N'hésitez pas !</p>
+    </header>
+
+    <div class="panel" style="max-width: 600px; margin: 0 auto;">
+      <form id="contactForm" style="display: flex; flex-direction: column; gap: 20px;">
+        <div>
+          <label class="label" style="margin-bottom: 8px;">📧 Votre email</label>
+          <input
+            type="email"
+            id="emailInput"
+            required
+            placeholder="votre@email.com"
+            style="width: 100%; padding: 12px 16px; background: var(--dark-surface); border: 2px solid var(--dark-border); border-radius: 8px; color: var(--text-light); font-size: 0.95rem; transition: all 0.3s ease; box-sizing: border-box;"
+            onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 4px var(--accent-glow)'"
+            onblur="this.style.borderColor='var(--dark-border)'; this.style.boxShadow='none'"
+          >
+        </div>
+
+        <div>
+          <label class="label" style="margin-bottom: 8px;">💬 Votre message</label>
+          <textarea
+            id="messageInput"
+            required
+            rows="6"
+            placeholder="Votre message ici..."
+            style="width: 100%; padding: 12px 16px; background: var(--dark-surface); border: 2px solid var(--dark-border); border-radius: 8px; color: var(--text-light); font-size: 0.95rem; resize: vertical; font-family: inherit; line-height: 1.6; transition: all 0.3s ease; box-sizing: border-box;"
+            onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 4px var(--accent-glow)'"
+            onblur="this.style.borderColor='var(--dark-border)'; this.style.boxShadow='none'"
+          ></textarea>
+        </div>
+
+        <button type="submit" class="btn">
+          Envoyer le message
+        </button>
+
+        <div id="formMessage" style="text-align: center; color: var(--accent); font-weight: 600; display: none;"></div>
+      </form>
+    </div>
+
+    <div class="panel" style="margin-top: 32px; text-align: center;">
+      <h3 style="color: var(--accent); margin-top: 0; margin-bottom: 16px; font-size: 1.2rem;">Autres moyens de contact</h3>
+      <div style="display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; color: var(--text-light);">
+        <div>
+          <strong style="color: var(--accent);">📧 Email:</strong><br>
+          <a href="mailto:contact@jonx.dev" style="color: var(--text-light); text-decoration: none;">contact@jonx.dev</a>
+        </div>
+        <div>
+          <strong style="color: var(--accent);">🐙 GitHub:</strong><br>
+          <a href="https://github.com/yourname/jonx" target="_blank" style="color: var(--text-light); text-decoration: none;">github.com/yourname/jonx</a>
+        </div>
+        <div>
+          <strong style="color: var(--accent);">🐦 Twitter:</strong><br>
+          <a href="https://twitter.com/jonx" target="_blank" style="color: var(--text-light); text-decoration: none;">@jonx</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const contactForm = document.getElementById('contactForm');
+    const formMessage = document.getElementById('formMessage');
+
+    contactForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById('emailInput').value;
+      const message = document.getElementById('messageInput').value;
+
+      // Simulation d'envoi (remplacer par votre logique d'envoi réelle)
+      formMessage.style.display = 'block';
+      formMessage.textContent = '✅ Message envoyé avec succès !';
+      formMessage.style.color = 'var(--success)';
+
+      // Réinitialiser le formulaire
+      contactForm.reset();
+
+      // Masquer le message après 5 secondes
+      setTimeout(() => {
+        formMessage.style.display = 'none';
+      }, 5000);
+    });
+  </script>
+
+</body>
+</html>
