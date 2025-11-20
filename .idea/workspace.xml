@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a86d4641-5da3-4b72-be87-9b4ea9117edb" name="Changes" comment="Add .ignore file, remove style.css, and implement JONX encoder/decoder with main execution script" />
+    <list default="true" id="a86d4641-5da3-4b72-be87-9b4ea9117edb" name="Changes" comment="add gitignore">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -109,12 +111,21 @@
       <option name="project" value="LOCAL" />
       <updated>1763631418023</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="add gitignore">
+      <option name="closed" value="true" />
+      <created>1763631672866</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1763631672866</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="start project json++" />
     <MESSAGE value="Add .ignore file, remove style.css, and implement JONX encoder/decoder with main execution script" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add .ignore file, remove style.css, and implement JONX encoder/decoder with main execution script" />
+    <MESSAGE value="add gitignore" />
+    <option name="LAST_COMMIT_MESSAGE" value="add gitignore" />
   </component>
 </project>
