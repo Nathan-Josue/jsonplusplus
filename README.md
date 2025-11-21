@@ -84,7 +84,7 @@ Serveur FastAPI qui expose une API REST complète pour convertir entre JSON et J
 - Gestion CORS pour les requêtes cross-origin
 - Gestion d'erreurs complète avec codes HTTP appropriés
 
-## 📦 Format JONX
+## 📦 Format JONX|JSON++
 
 Le format JONX est structuré comme suit :
 
@@ -131,7 +131,7 @@ Les colonnes numériques (int32, float32) génèrent automatiquement un index tr
 from backend.logical.encoder import jonx_encode
 
 # Convertir un fichier JSON en JONX
-jonx_encode("backend/data/json/data.json", "json++/data_jonx.json++")
+jonx_encode("data/json/data.json", "data/json++/data_jonx.json++")
 ```
 
 **Exemple de JSON d'entrée :**
@@ -534,10 +534,10 @@ from backend.logical.encoder import jonx_encode
 from backend.logical.decoder import JONXFile
 
 # 1. Encoder un JSON en JONX
-jonx_encode("backend/data/json/data.json", "json++/data_jonx.json++")
+jonx_encode("data/json/data.json", "data/json++/data_jonx.json++")
 
 # 2. Charger le fichier JONX
-jonx_file = JONXFile("json++/data_jonx.json++")
+jonx_file = JONXFile("data/json++/data_jonx.json++")
 
 # 3. Accéder aux métadonnées
 print(f"Colonnes: {jonx_file.fields}")
@@ -616,11 +616,11 @@ print(f"Statut API: {response.json()}")
 5. **Lecture sélective** : Décompression à la demande des colonnes
 6. **Format binaire** : Plus rapide à lire que JSON textuel
 
-## 📄 Licence
+## Licence
 
 Ce projet est fourni tel quel pour usage éducatif et de développement.
 
-## 🤝 Contribution
+## Contribution
 
 Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
 
