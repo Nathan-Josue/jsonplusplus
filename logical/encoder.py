@@ -1,6 +1,7 @@
 import orjson
 import zstandard as zstd
 import struct
+import io
 from collections import defaultdict
 
 def detect_type(values):
@@ -28,59 +29,92 @@ def pack_column(values, col_type):
     else:
         return orjson.dumps(values)
 
-def jonx_encode(json_path, jonx_path):
-    # 1️⃣ Lire le JSON
-    with open(json_path, "rb") as f:
-        data = orjson.loads(f.read())
-    if not isinstance(data, list):
+def encode_to_bytes(json_data):
+    """
+    Encode des données JSON en format JONX et retourne les bytes
+    
+    Args:
+        json_data: Liste de dictionnaires JSON à encoder
+        
+    Returns:
+        Bytes du fichier JONX encodé
+    """
+    if not isinstance(json_data, list):
         raise ValueError("Le JSON doit être une liste d'objets")
-
-    # 2️⃣ Détection automatique des colonnes
-    fields = list(data[0].keys())
-    columns = {field: [p.get(field) for p in data] for field in fields}
-
-    # 3️⃣ Détection des types
+    
+    if len(json_data) == 0:
+        raise ValueError("La liste JSON ne peut pas être vide")
+    
+    # Détection automatique des colonnes
+    fields = list(json_data[0].keys())
+    columns = {field: [p.get(field) for p in json_data] for field in fields}
+    
+    # Détection des types
     types = {field: detect_type(vals) for field, vals in columns.items()}
-
-    # 4️⃣ Compression des colonnes
+    
+    # Compression des colonnes
     c = zstd.ZstdCompressor(level=3)
     compressed_columns = {}
     for field, vals in columns.items():
         packed = pack_column(vals, types[field])
         compressed_columns[field] = c.compress(packed)
-
-    # 5️⃣ Création d’index automatique pour colonnes numériques
+    
+    # Création d'index automatique pour colonnes numériques
     indexes = {}
     for field, col_type in types.items():
         if col_type in ["int32", "float32"]:
             # index trié ascendant
             sorted_index = sorted(range(len(columns[field])), key=lambda i: columns[field][i])
             indexes[field] = c.compress(orjson.dumps(sorted_index))
+    
+    # Créer le fichier JONX en mémoire
+    output = io.BytesIO()
+    
+    # Header
+    output.write(b"JONX")
+    output.write(struct.pack("I", 1))  # version
+    
+    # Schema JSON compressé
+    schema = {"fields": fields, "types": types}
+    schema_compressed = c.compress(orjson.dumps(schema))
+    output.write(struct.pack("I", len(schema_compressed)))
+    output.write(schema_compressed)
+    
+    # Colonnes compressées
+    for field in fields:
+        col_data = compressed_columns[field]
+        output.write(struct.pack("I", len(col_data)))
+        output.write(col_data)
+    
+    # Index compressés
+    output.write(struct.pack("I", len(indexes)))
+    for field, idx in indexes.items():
+        output.write(struct.pack("I", len(field)))
+        output.write(field.encode("utf-8"))
+        output.write(struct.pack("I", len(idx)))
+        output.write(idx)
+    
+    output.seek(0)
+    return output.read()
 
-    # 6️⃣ Écriture du fichier JONX
+def jonx_encode(json_path, jonx_path):
+    """
+    Encode un fichier JSON en format JONX et l'écrit dans un fichier
+    
+    Args:
+        json_path: Chemin vers le fichier JSON source
+        jonx_path: Chemin vers le fichier JONX de destination
+    """
+    # Lire le JSON
+    with open(json_path, "rb") as f:
+        data = orjson.loads(f.read())
+    
+    # Encoder en bytes
+    jonx_bytes = encode_to_bytes(data)
+    
+    # Écrire dans le fichier
     with open(jonx_path, "wb") as f:
-        # header
-        f.write(b"JONX")
-        f.write(struct.pack("I", 1))  # version
-
-        # schema JSON compressé
-        schema = {"fields": fields, "types": types}
-        schema_compressed = c.compress(orjson.dumps(schema))
-        f.write(struct.pack("I", len(schema_compressed)))  # taille du schéma
-        f.write(schema_compressed)
-
-        # colonnes compressées
-        for field in fields:
-            col_data = compressed_columns[field]
-            f.write(struct.pack("I", len(col_data)))  # taille de la colonne
-            f.write(col_data)
-
-        # index compressés
-        f.write(struct.pack("I", len(indexes)))  # nombre d'index
-        for field, idx in indexes.items():
-            f.write(struct.pack("I", len(field)))  # taille du nom du champ
-            f.write(field.encode("utf-8"))
-            f.write(struct.pack("I", len(idx)))  # taille de l'index
-            f.write(idx)
-
+        f.write(jonx_bytes)
+    
+    fields = list(data[0].keys()) if data else []
     print(f"✅ Fichier JSON++ (JONX) créé avec {len(fields)} colonnes et {len(data)} lignes")

@@ -1,7 +1,6 @@
 # Dossiers et fichiers spécifiques
 /data
 .idea
-viewer.html
 
 # Fichiers Python
 __pycache__/

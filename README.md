@@ -124,10 +124,10 @@ Les colonnes numériques (int32, float32) génèrent automatiquement un index tr
 ### encoder.py
 
 ```python
-from logical.encoder import jonx_encode
+from backend.logical.encoder import jonx_encode
 
 # Convertir un fichier JSON en JONX
-jonx_encode("data/json/data.json", "json++/data_jonx.json++")
+jonx_encode("backend/data/json/data.json", "json++/data_jonx.json++")
 ```
 
 **Exemple de JSON d'entrée :**
@@ -145,7 +145,7 @@ jonx_encode("data/json/data.json", "json++/data_jonx.json++")
 ### decoder.py
 
 ```python
-from logical.decoder import JONXFile
+from backend.logical.decoder import JONXFile
 
 # Charger un fichier JONX
 jonx_file = JONXFile("json++/data_jonx.json++")
@@ -266,11 +266,11 @@ Prévisualise les métadonnées d'un JSON sans générer le fichier JONX.
 ### Exemple complet : Encoder puis décoder
 
 ```python
-from logical.encoder import jonx_encode
-from logical.decoder import JONXFile
+from backend.logical.encoder import jonx_encode
+from backend.logical.decoder import JONXFile
 
 # 1. Encoder un JSON en JONX
-jonx_encode("data/json/data.json", "json++/data_jonx.json++")
+jonx_encode("backend/data/json/data.json", "json++/data_jonx.json++")
 
 # 2. Charger le fichier JONX
 jonx_file = JONXFile("json++/data_jonx.json++")
