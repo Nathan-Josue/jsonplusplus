@@ -7,6 +7,7 @@ from logical.encoder import detect_type, pack_column, encode_to_bytes
 from logical.decoder import decode_from_bytes
 import orjson
 import zstandard as zstd
+from fastapi.responses import RedirectResponse
 
 # Configuration de l'API
 app = FastAPI(
@@ -40,25 +41,9 @@ class EncodeRequest(BaseModel):
 
 # ==================== ENDPOINTS API ====================
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 async def root():
-    """
-    Endpoint racine - Informations sur l'API
-    
-    Returns:
-        Message de bienvenue avec liens vers la documentation
-    """
-    return {
-        "message": "JONX API - Convertisseur JSON ↔ JSON++",
-        "version": "1.0.0",
-        "documentation": "/docs",
-        "endpoints": {
-            "health": "/health",
-            "decode": "/api/decode (POST)",
-            "encode": "/api/encode (POST)",
-            "preview": "/api/preview (POST)"
-        }
-    }
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/health")
