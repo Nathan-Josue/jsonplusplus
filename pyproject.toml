@@ -1,6 +1,6 @@
 [project]
 name = "jsonplusplus"
-version = "1.0.6"
+version = "1.0.7"
 description = "Un convertisseur JSON ↔ JSON++ optimisé"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -12,6 +12,10 @@ authors = [
 keywords = ["json", "json++", "data", "conversion", "parser", "jsonpp", "jsonplusplus", "structure"]
 
 dependencies = []
+
+[project.scripts]
+jsonplusplus = "jsonplusplus.cli:main"
+jonx = "jsonplusplus.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/Nathan-Josue/jsonplusplus"

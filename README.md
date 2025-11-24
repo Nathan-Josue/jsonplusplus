@@ -436,6 +436,173 @@ if validation["warnings"]:
 
 ---
 
+## 🖥️ Interface en ligne de commande (CLI)
+
+`jsonplusplus` inclut une interface en ligne de commande complète pour convertir, inspecter et interroger les fichiers JONX.
+
+### Installation
+
+Après installation avec `pip install jsonplusplus`, la commande `jsonplusplus` (ou `jonx`) est disponible dans votre terminal.
+
+### Commandes disponibles
+
+#### `encode` - Encoder JSON → JONX
+
+```bash
+# Encoder un fichier JSON
+jsonplusplus encode data.json -o data.jonx
+
+# Ou sans spécifier la sortie (génère automatiquement data.jonx)
+jsonplusplus encode data.json
+```
+
+**Options :**
+- `input` : Fichier JSON d'entrée (requis)
+- `-o, --output` : Fichier JONX de sortie (optionnel, généré automatiquement si omis)
+
+**Exemple de sortie :**
+```
+📦 Encodage de 'data.json' vers 'data.jonx'...
+✅ JONX créé : 1000 lignes, 5 colonnes
+✅ Encodage réussi!
+   Taille originale: 125,340 bytes
+   Taille JONX: 45,230 bytes
+   Compression: 63.9%
+```
+
+#### `decode` - Décoder JONX → JSON
+
+```bash
+# Décoder un fichier JONX
+jsonplusplus decode data.jonx -o data.json
+
+# Ou sans spécifier la sortie (génère automatiquement data.json)
+jsonplusplus decode data.jonx
+```
+
+**Options :**
+- `input` : Fichier JONX d'entrée (requis)
+- `-o, --output` : Fichier JSON de sortie (optionnel, généré automatiquement si omis)
+
+**Exemple de sortie :**
+```
+📦 Décodage de 'data.jonx' vers 'data.json'...
+✅ Décodage réussi!
+   Version: 1
+   Lignes: 1000
+   Colonnes: 5
+   Fichier créé: data.json
+```
+
+#### `info` - Afficher les informations
+
+```bash
+jsonplusplus info data.jonx
+```
+
+Affiche toutes les métadonnées du fichier JONX.
+
+**Exemple de sortie :**
+```
+📊 Informations sur 'data.jonx':
+============================================================
+Chemin:           data.jonx
+Version:          1
+Nombre de lignes: 1,000
+Nombre de colonnes: 5
+Taille du fichier: 45,230 bytes
+
+Colonnes (5):
+  [✓] id                   (int16)
+  [ ] name                 (str)
+  [✓] age                  (int16)
+  [✓] salary               (float16)
+  [ ] active               (bool)
+
+Index disponibles (3):
+  - id
+  - age
+  - salary
+```
+
+#### `validate` - Valider un fichier JONX
+
+```bash
+jsonplusplus validate data.jonx
+```
+
+Valide l'intégrité complète du fichier JONX.
+
+**Exemple de sortie :**
+```
+🔍 Validation de 'data.jonx'...
+✅ Fichier valide!
+```
+
+#### `query` - Interroger un fichier JONX
+
+```bash
+# Trouver la valeur minimale
+jsonplusplus query data.jonx price --min
+
+# Trouver la valeur maximale
+jsonplusplus query data.jonx age --max --use-index
+
+# Calculer la somme
+jsonplusplus query data.jonx salary --sum
+
+# Calculer la moyenne
+jsonplusplus query data.jonx salary --avg
+
+# Compter les éléments
+jsonplusplus query data.jonx id --count
+```
+
+**Options :**
+- `file` : Fichier JONX (requis)
+- `column` : Nom de la colonne (requis)
+- `--min` : Trouver la valeur minimale
+- `--max` : Trouver la valeur maximale
+- `--sum` : Calculer la somme (colonne numérique uniquement)
+- `--avg` : Calculer la moyenne (colonne numérique uniquement)
+- `--count` : Compter les éléments
+- `--use-index` : Utiliser l'index pour les opérations min/max (plus rapide)
+
+**Exemples de sortie :**
+```
+Minimum de 'price': 10.5
+Maximum de 'age': 65
+Somme de 'salary': 262016.0
+Moyenne de 'salary': 52403.2
+Nombre d'éléments dans 'id': 1000
+```
+
+### Aide
+
+Pour voir toutes les commandes disponibles :
+
+```bash
+jsonplusplus --help
+```
+
+Pour voir l'aide d'une commande spécifique :
+
+```bash
+jsonplusplus encode --help
+jsonplusplus query --help
+```
+
+### Utilisation en tant que module Python
+
+Vous pouvez aussi utiliser le CLI via Python :
+
+```bash
+python -m jsonplusplus encode data.json
+python -m jsonplusplus info data.jonx
+```
+
+---
+
 ## 📖 Exemples
 
 ### Exemple rapide
