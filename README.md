@@ -75,6 +75,251 @@ pip install jsonplusplus
 
 ---
 
+## 📚 Référence complète des opérations
+
+### 🔧 Opérations d'encodage (JSON → JONX)
+
+#### `jonx_encode(json_path, jonx_path)`
+
+Convertit un fichier JSON en fichier JONX.
+
+**Paramètres :**
+- `json_path` (str) : Chemin vers le fichier JSON source
+- `jonx_path` (str) : Chemin vers le fichier JONX de destination
+
+**Exemple :**
+```python
+from jsonplusplus import jonx_encode
+
+jonx_encode("data.json", "data.jonx")
+```
+
+#### `encode_to_bytes(json_data)`
+
+Encode des données JSON en mémoire en bytes JONX.
+
+**Paramètres :**
+- `json_data` (list) : Liste d'objets JSON (tous les objets doivent avoir les mêmes clés)
+
+**Retourne :**
+- `bytes` : Données JONX encodées
+
+**Exemple :**
+```python
+from jsonplusplus import encode_to_bytes
+
+data = [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
+jonx_bytes = encode_to_bytes(data)
+```
+
+---
+
+### 🔍 Opérations de décodage (JONX → JSON)
+
+#### `decode_from_bytes(data: bytes) -> dict`
+
+Décode des bytes JONX et retourne un dictionnaire avec les données reconstruites.
+
+**Paramètres :**
+- `data` (bytes) : Données JONX à décoder
+
+**Retourne :**
+- `dict` avec les clés suivantes :
+  - `version` (int) : Version du format JONX
+  - `fields` (list) : Liste des noms de colonnes
+  - `types` (dict) : Dictionnaire des types par colonne
+  - `num_rows` (int) : Nombre de lignes
+  - `json_data` (list) : Données JSON reconstruites (liste d'objets)
+
+**Exemple :**
+```python
+from jsonplusplus import decode_from_bytes
+
+with open("data.jonx", "rb") as f:
+    result = decode_from_bytes(f.read())
+
+print(result["json_data"])  # Liste d'objets JSON
+print(result["fields"])     # ["id", "name", ...]
+print(result["types"])      # {"id": "int32", "name": "str", ...}
+```
+
+---
+
+### 📂 Classe JONXFile
+
+La classe `JONXFile` permet un accès optimisé aux fichiers JONX avec chargement paresseux des colonnes.
+
+#### Constructeur
+
+```python
+JONXFile(path: str)
+```
+
+**Paramètres :**
+- `path` (str) : Chemin vers le fichier JONX
+
+**Propriétés disponibles :**
+- `fields` (list) : Liste des noms de colonnes disponibles
+- `types` (dict) : Dictionnaire des types par colonne
+- `indexes` (dict) : Dictionnaire des index disponibles (clés = noms de colonnes numériques)
+
+#### Méthodes d'accès aux données
+
+##### `get_column(field_name: str) -> list`
+
+Récupère une colonne décompressée. La décompression se fait à la demande (lazy loading).
+
+**Paramètres :**
+- `field_name` (str) : Nom de la colonne à récupérer
+
+**Retourne :**
+- `list` : Liste des valeurs de la colonne
+
+**Exemple :**
+```python
+file = JONXFile("data.jonx")
+prices = file.get_column("price")  # Décompression à la demande
+```
+
+##### `get_columns(field_names: list) -> dict`
+
+Récupère plusieurs colonnes en une seule opération.
+
+**Paramètres :**
+- `field_names` (list) : Liste des noms de colonnes à récupérer
+
+**Retourne :**
+- `dict` : Dictionnaire {nom_colonne: [valeurs]}
+
+**Exemple :**
+```python
+file = JONXFile("data.jonx")
+columns = file.get_columns(["id", "name", "price"])
+# Retourne: {"id": [1, 2, 3], "name": ["Alice", "Bob", "Charlie"], "price": [100, 200, 300]}
+```
+
+#### Méthodes de recherche
+
+##### `find_min(field: str, column=None, use_index=False) -> any`
+
+Trouve la valeur minimale d'une colonne.
+
+**Paramètres :**
+- `field` (str) : Nom de la colonne
+- `column` (list, optionnel) : Colonne pré-chargée (récupérée automatiquement si None)
+- `use_index` (bool) : Utiliser l'index pour une recherche O(1) (recommandé pour colonnes numériques)
+
+**Retourne :**
+- Valeur minimale de la colonne
+
+**Exemple :**
+```python
+file = JONXFile("data.jonx")
+min_price = file.find_min("price", use_index=True)  # Ultra-rapide avec index
+```
+
+##### `find_max(field: str, column=None, use_index=False) -> any`
+
+Trouve la valeur maximale d'une colonne.
+
+**Paramètres :**
+- `field` (str) : Nom de la colonne
+- `column` (list, optionnel) : Colonne pré-chargée (récupérée automatiquement si None)
+- `use_index` (bool) : Utiliser l'index pour une recherche O(1) (recommandé pour colonnes numériques)
+
+**Retourne :**
+- Valeur maximale de la colonne
+
+**Exemple :**
+```python
+file = JONXFile("data.jonx")
+max_price = file.find_max("price", use_index=True)  # Ultra-rapide avec index
+```
+
+#### Méthodes d'agrégation
+
+##### `sum(field: str, column=None) -> number`
+
+Calcule la somme d'une colonne numérique.
+
+**Paramètres :**
+- `field` (str) : Nom de la colonne
+- `column` (list, optionnel) : Colonne pré-chargée (récupérée automatiquement si None)
+
+**Retourne :**
+- Somme des valeurs de la colonne
+
+**Lève :**
+- `TypeError` : Si la colonne n'est pas numérique
+
+**Exemple :**
+```python
+file = JONXFile("data.jonx")
+total_sales = file.sum("sales")
+```
+
+##### `avg(field: str, column=None) -> float`
+
+Calcule la moyenne d'une colonne numérique.
+
+**Paramètres :**
+- `field` (str) : Nom de la colonne
+- `column` (list, optionnel) : Colonne pré-chargée (récupérée automatiquement si None)
+
+**Retourne :**
+- Moyenne des valeurs de la colonne
+
+**Lève :**
+- `TypeError` : Si la colonne n'est pas numérique
+- `ValueError` : Si la colonne est vide
+
+**Exemple :**
+```python
+file = JONXFile("data.jonx")
+avg_price = file.avg("price")
+```
+
+##### `count(field: str = None) -> int`
+
+Compte le nombre d'éléments dans une colonne ou le nombre total de lignes.
+
+**Paramètres :**
+- `field` (str, optionnel) : Nom de la colonne (si None, retourne le nombre total de lignes)
+
+**Retourne :**
+- Nombre d'éléments dans la colonne ou nombre total de lignes
+
+**Exemple :**
+```python
+file = JONXFile("data.jonx")
+total_rows = file.count()        # Nombre total de lignes
+price_count = file.count("price")  # Nombre d'éléments dans la colonne price
+```
+
+---
+
+### 📊 Tableau récapitulatif des opérations
+
+| Opération | Type | Description | Performance |
+|-----------|------|-------------|-------------|
+| `jonx_encode()` | Encodage | Convertit fichier JSON → JONX | O(n) |
+| `encode_to_bytes()` | Encodage | Encode données JSON → bytes JONX | O(n) |
+| `decode_from_bytes()` | Décodage | Décode bytes JONX → JSON complet | O(n) |
+| `JONXFile()` | Chargement | Charge fichier JONX (lazy) | O(1) |
+| `get_column()` | Accès | Récupère une colonne (décompression à la demande) | O(n) |
+| `get_columns()` | Accès | Récupère plusieurs colonnes | O(n×m) |
+| `find_min()` | Recherche | Valeur minimale (avec index = O(1)) | O(1) avec index, O(n) sans |
+| `find_max()` | Recherche | Valeur maximale (avec index = O(1)) | O(1) avec index, O(n) sans |
+| `sum()` | Agrégation | Somme d'une colonne numérique | O(n) |
+| `avg()` | Agrégation | Moyenne d'une colonne numérique | O(n) |
+| `count()` | Agrégation | Nombre d'éléments | O(1) |
+
+**Légende :**
+- `n` = nombre de lignes
+- `m` = nombre de colonnes à récupérer
+
+---
+
 ## 📖 Exemples
 
 ### Exemple rapide
@@ -105,17 +350,29 @@ file = JONXFile("data.jonx")
 # Accéder aux métadonnées
 print(f"Colonnes disponibles: {file.fields}")
 print(f"Types détectés: {file.types}")
+print(f"Index disponibles: {list(file.indexes.keys())}")
 
 # Récupérer une colonne spécifique (décompression à la demande)
 ages = file.get_column("age")
 prices = file.get_column("price")
 
+# Récupérer plusieurs colonnes en une fois
+columns = file.get_columns(["id", "name", "price"])
+
 # Utiliser les index pour des recherches ultra-rapides
 min_age = file.find_min("age", use_index=True)
-max_price = max(file.get_column("price"))
+max_price = file.find_max("price", use_index=True)
+
+# Opérations d'agrégation
+total_sales = file.sum("sales")
+avg_price = file.avg("price")
+num_rows = file.count()
 
 print(f"Âge minimum: {min_age}")
 print(f"Prix maximum: {max_price}")
+print(f"Total ventes: {total_sales}")
+print(f"Prix moyen: {avg_price}")
+print(f"Nombre de lignes: {num_rows}")
 
 # Reconstruire le JSON complet si nécessaire
 json_data = []
@@ -250,6 +507,8 @@ Aucune dépendance externe lourde. Utilise uniquement des bibliothèques Python 
 - [x] Index automatiques pour colonnes numériques
 - [x] Classe `JONXFile` avec accès colonne par colonne
 - [x] Support des recherches min/max avec index
+- [x] Opérations d'agrégation (sum, avg, count)
+- [x] Récupération multiple de colonnes (get_columns)
 
 ### Version 2.0 (Planifiée) 🚧
 
@@ -258,7 +517,8 @@ Aucune dépendance externe lourde. Utilise uniquement des bibliothèques Python 
 - [ ] Filtrage et projection de colonnes optimisés
 - [ ] Support des données nulles (NULL handling)
 - [ ] Streaming pour fichiers volumineux
-- [ ] API de requête simple (filtres, agrégations)
+- [ ] API de requête simple (filtres, groupby, joins)
+- [ ] Opérations d'agrégation avancées (std, median, quantiles)
 - [ ] Benchmarks de performance complets
 
 ### Version 3.0 (Future) 🔮

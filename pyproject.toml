@@ -1,6 +1,6 @@
 [project]
 name = "jsonplusplus"
-version = "1.0.3"
+version = "1.0.4"
 description = "Un convertisseur JSON ↔ JSON++ optimisé"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -9,7 +9,7 @@ authors = [
     {name = "Nathan Josue"},
 ]
 
-keywords = ["json", "json++", "data", "conversion", "parser"]
+keywords = ["json", "json++", "data", "conversion", "parser", "jsonpp", "jsonplusplus", "structure"]
 
 dependencies = []
 
