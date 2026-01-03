@@ -45,7 +45,7 @@
 ### 2. Méthodes utilitaires de base
 
 #### 2.1 Informations sur le fichier
-- [ ] `JONXFile.info()` : Retourne un dictionnaire avec toutes les métadonnées
+- [x] `JONXFile.info()` : Retourne un dictionnaire avec toutes les métadonnées
   ```python
   {
       "path": "data.jonx",
@@ -59,12 +59,12 @@
   }
   ```
 
-- [ ] `JONXFile.has_index(field)` : Vérifie si une colonne a un index
-- [ ] `JONXFile.is_numeric(field)` : Vérifie si une colonne est numérique
+- [x] `JONXFile.has_index(field)` : Vérifie si une colonne a un index
+- [x] `JONXFile.is_numeric(field)` : Vérifie si une colonne est numérique
 
 #### 2.2 Validation et vérification
-- [ ] `JONXFile.validate()` : Valide l'intégrité du fichier JONX
-- [ ] `JONXFile.check_schema()` : Vérifie la cohérence du schéma
+- [x] `JONXFile.validate()` : Valide l'intégrité du fichier JONX
+- [x] `JONXFile.check_schema()` : Vérifie la cohérence du schéma
 
 **Priorité :** 🟡 **MOYENNE** - Améliore l'expérience utilisateur
 
@@ -73,24 +73,24 @@
 ### 3. Tests unitaires complets
 
 #### 3.1 Tests d'encodage
-- [ ] Tests avec différents types de données
-- [ ] Tests avec données volumineuses
-- [ ] Tests avec données edge cases (valeurs nulles potentielles, types mixtes)
-- [ ] Tests de validation des erreurs
+- [x] Tests avec différents types de données
+- [x] Tests avec données volumineuses
+- [x] Tests avec données edge cases (valeurs nulles potentielles, types mixtes)
+- [x] Tests de validation des erreurs
 
 #### 3.2 Tests de décodage
-- [ ] Tests de décodage complet
-- [ ] Tests de décodage avec fichiers corrompus
-- [ ] Tests de compatibilité de version
+- [x] Tests de décodage complet
+- [x] Tests de décodage avec fichiers corrompus
+- [x] Tests de compatibilité de version
 
 #### 3.3 Tests de JONXFile
-- [ ] Tests de toutes les méthodes (get_column, find_min, find_max, sum, avg, count)
-- [ ] Tests avec index et sans index
-- [ ] Tests de performance basiques
+- [x] Tests de toutes les méthodes (get_column, find_min, find_max, sum, avg, count)
+- [x] Tests avec index et sans index
+- [x] Tests de performance basiques
 
 #### 3.4 Tests d'intégration
-- [ ] Test complet : encode → decode → vérification
-- [ ] Test avec différents formats de données JSON
+- [x] Test complet : encode → decode → vérification
+- [x] Test avec différents formats de données JSON
 
 **Priorité :** 🔴 **HAUTE** - Essentiel pour la qualité
 

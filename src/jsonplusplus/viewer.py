@@ -16,13 +16,143 @@ import threading
 from typing import Optional, List, Dict, Any
 import csv
 import json
+import subprocess
+import platform
+import shutil
 
 from . import JONXFile, JONXError
 
 
 # Configuration de CustomTkinter
-ctk.set_appearance_mode("white")  # Mode sombre par défaut
+ctk.set_appearance_mode("light")  # Mode sombre par défaut
 ctk.set_default_color_theme("blue")  # Thème bleu
+
+
+def native_file_dialog(title: str = "Ouvrir un fichier", filetypes: Optional[List[tuple]] = None) -> Optional[str]:
+    """Ouvre un dialogue de fichier natif du système.
+    
+    Args:
+        title: Titre du dialogue
+        filetypes: Liste de tuples (description, extensions)
+        
+    Returns:
+        Chemin du fichier sélectionné ou None
+    """
+    system = platform.system()
+    
+    # Sur Linux, essayer d'utiliser zenity ou kdialog
+    if system == "Linux":
+        # Essayer zenity (GNOME/GTK)
+        if shutil.which("zenity"):
+            try:
+                cmd = ["zenity", "--file-selection", "--title", title]
+                
+                # Ajouter les filtres de fichiers
+                if filetypes:
+                    for desc, exts in filetypes:
+                        if exts != "*.*":
+                            # Convertir "*.jonx *.json++" en "--file-filter=Fichiers JONX | *.jonx *.json++"
+                            filter_str = f"{desc} | {exts}"
+                            cmd.extend(["--file-filter", filter_str])
+                
+                result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                file_path = result.stdout.strip()
+                return file_path if file_path else None
+            except (subprocess.CalledProcessError, Exception):
+                pass
+        
+        # Essayer kdialog (KDE)
+        elif shutil.which("kdialog"):
+            try:
+                cmd = ["kdialog", "--getopenfilename", str(Path.home()), ""]
+                
+                # Ajouter les filtres de fichiers
+                if filetypes:
+                    filters = []
+                    for desc, exts in filetypes:
+                        filters.append(f"{exts} | {desc}")
+                    cmd[-1] = "\n".join(filters)
+                
+                result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                file_path = result.stdout.strip()
+                return file_path if file_path else None
+            except (subprocess.CalledProcessError, Exception):
+                pass
+    
+    # Fallback sur le dialogue tkinter standard
+    return filedialog.askopenfilename(
+        title=title,
+        filetypes=filetypes if filetypes else [("Tous les fichiers", "*.*")]
+    )
+
+
+def native_save_dialog(title: str = "Enregistrer", defaultextension: str = "", filetypes: Optional[List[tuple]] = None) -> Optional[str]:
+    """Ouvre un dialogue d'enregistrement natif du système.
+    
+    Args:
+        title: Titre du dialogue
+        defaultextension: Extension par défaut (ex: ".csv")
+        filetypes: Liste de tuples (description, extensions)
+        
+    Returns:
+        Chemin du fichier à enregistrer ou None
+    """
+    system = platform.system()
+    
+    # Sur Linux, essayer d'utiliser zenity ou kdialog
+    if system == "Linux":
+        # Essayer zenity (GNOME/GTK)
+        if shutil.which("zenity"):
+            try:
+                cmd = ["zenity", "--file-selection", "--save", "--title", title, "--confirm-overwrite"]
+                
+                # Ajouter les filtres de fichiers
+                if filetypes:
+                    for desc, exts in filetypes:
+                        if exts != "*.*":
+                            filter_str = f"{desc} | {exts}"
+                            cmd.extend(["--file-filter", filter_str])
+                
+                result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                file_path = result.stdout.strip()
+                
+                # Ajouter l'extension si nécessaire
+                if file_path and defaultextension and not file_path.endswith(defaultextension):
+                    file_path += defaultextension
+                
+                return file_path if file_path else None
+            except (subprocess.CalledProcessError, Exception):
+                pass
+        
+        # Essayer kdialog (KDE)
+        elif shutil.which("kdialog"):
+            try:
+                cmd = ["kdialog", "--getsavefilename", str(Path.home()), ""]
+                
+                # Ajouter les filtres de fichiers
+                if filetypes:
+                    filters = []
+                    for desc, exts in filetypes:
+                        filters.append(f"{exts} | {desc}")
+                    cmd[-1] = "\n".join(filters)
+                
+                result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                file_path = result.stdout.strip()
+                
+                # Ajouter l'extension si nécessaire
+                if file_path and defaultextension and not file_path.endswith(defaultextension):
+                    file_path += defaultextension
+                
+                return file_path if file_path else None
+            except (subprocess.CalledProcessError, Exception):
+                pass
+    
+    # Fallback sur le dialogue tkinter standard
+    return filedialog.asksaveasfilename(
+        title=title,
+        defaultextension=defaultextension,
+        filetypes=filetypes if filetypes else [("Tous les fichiers", "*.*")]
+    )
 
 
 class JONXViewer(ctk.CTk):
@@ -312,7 +442,7 @@ class JONXViewer(ctk.CTk):
     
     def open_file(self):
         """Ouvre un fichier JONX."""
-        file_path = filedialog.askopenfilename(
+        file_path = native_file_dialog(
             title="Ouvrir un fichier JONX",
             filetypes=[
                 ("Fichiers JONX", "*.jonx *.json++"),
@@ -552,7 +682,7 @@ class JONXViewer(ctk.CTk):
             messagebox.showwarning("Avertissement", "Aucune donnée à exporter")
             return
         
-        file_path = filedialog.asksaveasfilename(
+        file_path = native_save_dialog(
             title="Exporter en CSV",
             defaultextension=".csv",
             filetypes=[("CSV", "*.csv"), ("Tous les fichiers", "*.*")]
@@ -576,7 +706,7 @@ class JONXViewer(ctk.CTk):
             messagebox.showwarning("Avertissement", "Aucune donnée à exporter")
             return
         
-        file_path = filedialog.asksaveasfilename(
+        file_path = native_save_dialog(
             title="Exporter en JSON",
             defaultextension=".json",
             filetypes=[("JSON", "*.json"), ("Tous les fichiers", "*.*")]

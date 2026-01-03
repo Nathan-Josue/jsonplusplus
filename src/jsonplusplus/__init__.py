@@ -1,5 +1,8 @@
 from .encoder import *
 from .decoder import *
+from .utils.decoder import *
+from .utils.encoder import *
+from .utils.type_detection import *
 from .exceptions import (
     JONXError,
     JONXValidationError,
@@ -17,6 +20,8 @@ __all__ = [
     # Decoder
     "decode_from_bytes",
     "JONXFile",
+    #Type
+    "detect_type",
     # Exceptions
     "JONXError",
     "JONXValidationError",
