@@ -677,35 +677,240 @@ python -m jsonplusplus info data.jonx
 
 #### `view` - Visualiseur GUI
 
-Ouvre une application desktop moderne pour visualiser les fichiers JONX.
+Ouvre une application desktop moderne pour visualiser et explorer les fichiers JONX de manière interactive.
 
 ```bash
-# Ouvrir le visualiseur
+# Ouvrir le visualiseur (sélection de fichier via dialogue)
 jsonplusplus view
 
-# Ouvrir directement un fichier
+# Ouvrir directement un fichier spécifique
 jsonplusplus view data.jonx
 
 # Ou utiliser la commande dédiée
 jonx-viewer data.jonx
 ```
 
-**Fonctionnalités du visualiseur :**
-- Interface moderne avec mode sombre/clair
-- Tableau interactif avec pagination
-- Recherche en temps réel
-- Métadonnées et statistiques
-- Export CSV/JSON
-- Statistiques automatiques (min, max, avg)
+**Fonctionnalités principales :**
+
+📊 **Visualisation des données**
+- Tableau interactif avec défilement fluide
+- Pagination intelligente (500 lignes par page)
+- Affichage optimisé pour les grands datasets
+- Coloration des cellules selon le type de données
+
+🔍 **Recherche et filtrage**
+- Recherche en temps réel dans toutes les colonnes
+- Mise en évidence des résultats
+- Navigation rapide entre les résultats
+- Filtrage intelligent par type
+
+📈 **Métadonnées et statistiques**
+- Informations du fichier (taille, version, compression)
+- Nombre de lignes et colonnes
+- Types détectés pour chaque colonne
+- Index disponibles
+- Statistiques automatiques :
+  - **Colonnes numériques** : min, max, moyenne, somme
+  - **Colonnes textuelles** : nombre de valeurs uniques
+  - **Colonnes temporelles** : plage de dates
+
+💾 **Export de données**
+- Export vers **CSV** (compatible Excel)
+- Export vers **JSON** (format original)
+- Export de la vue filtrée ou complète
+- Préservation de l'encodage UTF-8
+
+🎨 **Interface utilisateur**
+- Mode sombre/clair (bascule automatique)
+- Interface moderne avec customtkinter
+- Responsive et adaptative
+- Raccourcis clavier (Ctrl+O pour ouvrir, etc.)
 
 **Installation du support GUI :**
 ```bash
+# Option 1 : Installation avec dépendances GUI
 pip install jsonplusplus[gui]
-# Ou
+
+# Option 2 : Installation manuelle
 pip install customtkinter
 ```
 
+**Utilisation avancée :**
+
+```bash
+# Ouvrir plusieurs fichiers successivement
+jsonplusplus view users.jonx
+# Puis utiliser Fichier > Ouvrir dans le GUI pour charger d'autres fichiers
+
+# Analyser rapidement un fichier
+jsonplusplus view sales_2024.jonx
+# Le visualiseur affiche immédiatement :
+# - Structure des données
+# - Statistiques par colonne
+# - Taille du fichier et taux de compression
+```
+
+**Exemple de workflow :**
+
+1. **Exploration** : Ouvrir un fichier JONX pour voir sa structure
+2. **Analyse** : Consulter les statistiques (min/max/avg) des colonnes numériques
+3. **Recherche** : Filtrer les données avec la barre de recherche
+4. **Export** : Exporter les résultats vers CSV pour analyse externe
+
+**Avantages du visualiseur :**
+- Pas besoin de coder pour explorer les données
+- Idéal pour les datasets moyens (<1M lignes)
+- Alternative visuelle au CLI pour les utilisateurs non-techniques
+- Feedback immédiat sur la qualité des données
+
 Voir [VIEWER_GUI.md](VIEWER_GUI.md) pour la documentation complète du visualiseur.
+
+---
+
+## 🖼️ Visualiseur GUI (jonx-viewer)
+
+Le visualiseur GUI est une application desktop moderne qui permet d'explorer visuellement les fichiers JONX sans écrire de code. Basé sur customtkinter, il offre une interface intuitive et performante pour l'analyse de données.
+
+### Installation
+
+```bash
+# Installation complète avec support GUI
+pip install jsonplusplus[gui]
+
+# Ou installation manuelle de customtkinter
+pip install customtkinter
+```
+
+### Lancement
+
+```bash
+# Méthode 1 : Via le CLI
+jsonplusplus view [fichier.jonx]
+
+# Méthode 2 : Commande dédiée
+jonx-viewer [fichier.jonx]
+
+# Méthode 3 : Module Python
+python -m jsonplusplus view
+```
+
+### Interface utilisateur
+
+```
+╔════════════════════════════════════════════════════════════════════╗
+║  JONX Viewer                                            [_] [□] [X] ║
+╠════════════════════════════════════════════════════════════════════╣
+║  Fichier   Édition   Affichage   Aide                              ║
+╠════════════════════════════════════════════════════════════════════╣
+║  📂 data.jonx  │  1,000 lignes  │  5 colonnes  │  45.2 KB          ║
+╠════════════════════════════════════════════════════════════════════╣
+║  Recherche: [________________]  🔍                                 ║
+╠═══════════════════════════╦════════════════════════════════════════╣
+║  MÉTADONNÉES              ║  DONNÉES                               ║
+║                           ║                                        ║
+║  📊 Informations          ║  ┌──────┬──────┬──────┬──────┐        ║
+║  • Version: 3             ║  │ id   │ name │ age  │ city │        ║
+║  • Lignes: 1,000          ║  ├──────┼──────┼──────┼──────┤        ║
+║  • Colonnes: 5            ║  │ 1    │ Alice│ 30   │ Paris│        ║
+║  • Taille: 45.2 KB        ║  │ 2    │ Bob  │ 25   │ Lyon │        ║
+║                           ║  │ 3    │ Eve  │ 35   │ Nice │        ║
+║  🔢 Types détectés        ║  │ ...  │ ...  │ ...  │ ...  │        ║
+║  • id: uint16             ║  └──────┴──────┴──────┴──────┘        ║
+║  • name: str              ║                                        ║
+║  • age: uint8             ║  Page 1/2  [◄] [►]                    ║
+║  • city: enum             ║                                        ║
+║                           ║                                        ║
+║  📈 Statistiques          ║  [Exporter CSV] [Exporter JSON]        ║
+║  • age:                   ║                                        ║
+║    - Min: 18              ║                                        ║
+║    - Max: 65              ║                                        ║
+║    - Moy: 32.5            ║                                        ║
+║                           ║                                        ║
+║  🔍 Index disponibles     ║                                        ║
+║  • id ✓                   ║                                        ║
+║  • age ✓                  ║                                        ║
+╚═══════════════════════════╩════════════════════════════════════════╝
+```
+
+### Cas d'usage
+
+#### 1. Exploration rapide de données
+
+```bash
+# Recevoir un fichier JONX et vouloir voir son contenu
+jsonplusplus view mystery_data.jonx
+
+# Le visualiseur affiche immédiatement :
+# - Toutes les colonnes disponibles
+# - Les types détectés automatiquement
+# - Les premières lignes de données
+# - Les statistiques de base
+```
+
+#### 2. Validation de données
+
+```bash
+# Vérifier qu'un encodage s'est bien passé
+jsonplusplus encode sales.json -o sales.jonx
+jsonplusplus view sales.jonx
+
+# Vérifier visuellement :
+# ✓ Toutes les colonnes sont présentes
+# ✓ Les types sont corrects (uint8 au lieu de int32)
+# ✓ Pas de valeurs aberrantes dans les stats
+```
+
+#### 3. Analyse de datasets
+
+```bash
+# Analyser un fichier de ventes
+jsonplusplus view sales_2024.jonx
+
+# Dans le visualiseur :
+# 1. Consulter les stats (chiffre d'affaires total via sum)
+# 2. Rechercher des produits spécifiques
+# 3. Exporter les résultats filtrés en CSV
+```
+
+#### 4. Démonstration et partage
+
+```bash
+# Présenter des données à des collègues non-techniques
+jonx-viewer customer_data.jonx
+
+# Avantages :
+# - Pas besoin de Python ou code
+# - Interface familière (comme Excel)
+# - Export facile vers CSV/JSON
+```
+
+### Fonctionnalités avancées
+
+**Thèmes**
+- Mode clair : Idéal pour présentations
+- Mode sombre : Confortable pour l'analyse longue durée
+- Bascule automatique selon le système
+
+**Raccourcis clavier**
+- `Ctrl+O` : Ouvrir un fichier
+- `Ctrl+E` : Exporter vers CSV
+- `Ctrl+J` : Exporter vers JSON
+- `Ctrl+F` : Focus sur la barre de recherche
+- `Ctrl+Q` : Quitter
+
+**Performance**
+- Lazy loading : Charge uniquement les colonnes affichées
+- Pagination : 500 lignes par page par défaut
+- Recherche indexée : Rapide même sur gros datasets
+- Optimisé pour fichiers jusqu'à 1M lignes
+
+### Limitations
+
+- **Taille maximale recommandée** : ~1M lignes (au-delà, privilégier le CLI)
+- **Édition** : Lecture seule (pas de modification des données)
+- **Filtrage avancé** : Recherche simple uniquement (pas de requêtes complexes)
+
+Pour des besoins avancés (filtrage complexe, agrégations, etc.), utilisez l'API Python directement.
 
 ---
 
@@ -1081,14 +1286,34 @@ Les contributions sont les bienvenues ! Voici comment contribuer :
 jsonplusplus/
 ├── src/
 │   └── jsonplusplus/
-│       ├── __init__.py
-│       ├── encoder.py      # Encodage JSON → JONX
-│       └── decoder.py      # Décodage JONX → JSON
-├── tests/                  # Tests unitaires
+│       ├── __init__.py           # Point d'entrée principal
+│       ├── __main__.py           # Support python -m jsonplusplus
+│       ├── encoder.py            # Wrapper d'encodage fichier
+│       ├── decoder.py            # Wrapper de décodage + classe JONXFile
+│       ├── cli.py                # Interface en ligne de commande
+│       ├── viewer.py             # Visualiseur GUI (customtkinter)
+│       ├── viewer_main.py        # Point d'entrée du visualiseur
+│       ├── exceptions.py         # Exceptions personnalisées
+│       └── utils/                # Modules utilitaires (v2.0)
+│           ├── __init__.py
+│           ├── encoder.py        # Logique d'encodage core
+│           ├── decoder.py        # Logique de décodage core
+│           ├── type_detection.py # Détection automatique des types
+│           └── packing.py        # Packing binaire des colonnes
+├── tests/                        # Tests unitaires
+├── tester.py                     # Tests manuels
+├── test.py                       # Tests de détection de types
 ├── README.md
 ├── pyproject.toml
 └── LICENSE
 ```
+
+**Nouveautés v2.0 :**
+- **Module `utils/`** : Séparation de la logique métier pour meilleure maintenabilité
+- **`type_detection.py`** : Système de détection intelligent des 21 types
+- **`packing.py`** : Gestion du packing binaire optimisé
+- **`viewer.py`** : Application GUI moderne avec customtkinter
+- **`exceptions.py`** : Hiérarchie d'exceptions personnalisées
 
 ### Signaler un bug
 
