@@ -13,6 +13,20 @@ from .exceptions import (
     JONXIndexError
 )
 
+# Types numériques supportés
+NUMERIC_TYPES = {
+    "int8", "int16", "int32", "int64",
+    "uint8", "uint16", "uint32", "uint64",
+    "float16", "float32", "float64"
+}
+
+# Tous les types supportés
+SUPPORTED_TYPES = NUMERIC_TYPES | {
+    "bool", "str", "json", "binary",
+    "uuid", "date", "datetime", "timestamp_ms",
+    "enum", "string_dict"
+}
+
 
 class JONXFile:
     def __init__(self, path):
@@ -144,16 +158,22 @@ class JONXFile:
     def _validate_numeric_field(self, field_name):
         """
         Valide qu'une colonne est numérique.
-        
+
         Args:
             field_name: Nom de la colonne à valider
-            
+
         Raises:
             JONXValidationError: Si la colonne n'existe pas ou n'est pas numérique
         """
         self._validate_field_name(field_name)
         col_type = self.types.get(field_name)
-        if col_type not in ("int16", "int32", "float16", "float32"):
+
+        # Gérer les types nullable
+        base_type = col_type
+        if isinstance(col_type, str) and col_type.startswith("nullable<") and col_type.endswith(">"):
+            base_type = col_type[9:-1]
+
+        if base_type not in NUMERIC_TYPES:
             raise JONXValidationError(
                 f"La colonne '{field_name}' n'est pas numérique",
                 {"field": field_name, "type": col_type}
@@ -167,29 +187,40 @@ class JONXFile:
                 f"Erreur lors de la décompression de la colonne '{field_name}'",
                 {"field": field_name, "error": str(e)}
             ) from e
-        
+
         t = self.types[field_name]
 
+        # Mapping des types numériques vers leurs formats struct
+        numeric_formats = {
+            "int8": ("b", 1),
+            "int16": ("h", 2),
+            "int32": ("i", 4),
+            "int64": ("q", 8),
+            "uint8": ("B", 1),
+            "uint16": ("H", 2),
+            "uint32": ("I", 4),
+            "uint64": ("Q", 8),
+            "float32": ("f", 4),
+            "float64": ("d", 8),
+        }
+
         try:
-            if t == "int16":
-                n = len(packed) // 2
-                return list(struct.unpack(f"{n}h", packed))
+            # Types numériques standards
+            if t in numeric_formats:
+                fmt, size = numeric_formats[t]
+                n = len(packed) // size
+                return list(struct.unpack(f"{n}{fmt}", packed))
 
-            if t == "int32":
-                n = len(packed) // 4
-                return list(struct.unpack(f"{n}i", packed))
-
+            # float16 nécessite numpy
             if t == "float16":
                 arr = np.frombuffer(packed, dtype=np.float16)
                 return arr.astype(np.float32).tolist()
 
-            if t == "float32":
-                n = len(packed) // 4
-                return list(struct.unpack(f"{n}f", packed))
-
+            # bool
             if t == "bool":
                 return [bool(b) for b in packed]
 
+            # Tous les autres types (str, json, uuid, date, datetime, enum, string_dict, binary, etc.)
             return orjson.loads(packed)
         except (struct.error, orjson.JSONDecodeError) as e:
             raise JONXDecodeError(
@@ -480,19 +511,25 @@ class JONXFile:
     def is_numeric(self, field):
         """
         Vérifie si une colonne est de type numérique.
-        
+
         Args:
             field: Nom de la colonne à vérifier
-        
+
         Returns:
             bool: True si la colonne est numérique, False sinon
-            
+
         Raises:
             JONXValidationError: Si la colonne n'existe pas
         """
         self._validate_field_name(field)
         col_type = self.types.get(field)
-        return col_type in ("int16", "int32", "float16", "float32")
+
+        # Gérer les types nullable
+        base_type = col_type
+        if isinstance(col_type, str) and col_type.startswith("nullable<") and col_type.endswith(">"):
+            base_type = col_type[9:-1]
+
+        return base_type in NUMERIC_TYPES
 
     def check_schema(self):
         """
@@ -624,7 +661,12 @@ class JONXFile:
         
         # 5. Vérifier la cohérence des types
         for field, col_type in self.types.items():
-            if col_type not in ("int16", "int32", "float16", "float32", "bool", "str", "json"):
+            # Gérer les types nullable
+            base_type = col_type
+            if isinstance(col_type, str) and col_type.startswith("nullable<") and col_type.endswith(">"):
+                base_type = col_type[9:-1]
+
+            if base_type not in SUPPORTED_TYPES:
                 warnings.append(f"Type inconnu pour la colonne '{field}': {col_type}")
         
         return {

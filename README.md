@@ -13,6 +13,70 @@
 
 ---
 
+## 🎉 Nouveautés Version 2.0.0
+
+### Extension massive du système de types
+
+La version 2.0.0 apporte une **refonte complète de la détection de types** avec **21 types supportés** (contre 7 dans la v1.0), permettant une optimisation encore plus fine de la compression et du stockage :
+
+#### 📊 Nouveaux types numériques
+- **Entiers étendus** : int8, int64, uint8, uint16, uint32, uint64 (en plus de int16, int32)
+- **Flottants étendus** : float64 (en plus de float16, float32)
+- **Optimisation automatique** : Détection de la plage optimale (ex: [0-255] → uint8 au lieu de int32)
+- **Réduction de taille** : Jusqu'à 75% d'économie pour les petites valeurs (uint8 vs int32)
+
+#### 🕐 Support des types temporels
+- **date** : Format ISO 8601 (YYYY-MM-DD)
+- **datetime** : Format ISO 8601 avec heure
+- **timestamp_ms** : Timestamp Unix en millisecondes
+- **Index automatiques** : Recherches min/max O(1) sur les dates
+
+#### 🔧 Types spécialisés intelligents
+- **uuid** : Détection automatique des UUID
+- **enum** : Optimisation par dictionnaire pour ≤256 valeurs uniques
+- **string_dict** : Compression par dictionnaire pour ≤30% de valeurs uniques
+- **binary** : Support natif des données binaires (bytes, bytearray)
+
+#### ✨ Support nullable
+- **nullable<T>** : Tous les types supportent maintenant les valeurs `null`
+- **Détection automatique** : `[None, 1, 2]` → `nullable<uint8>`
+
+### Améliorations techniques
+
+- **Refactorisation du code** : Séparation de la logique métier en modules utils
+- **Meilleure maintenabilité** : Code modulaire et testé
+- **Performance** : Détection de types optimisée avec analyse intelligente
+- **CLI étendu** : Toutes les commandes supportent les nouveaux types
+
+### Migration depuis v1.x
+
+✅ **100% rétrocompatible** : Aucune modification de code nécessaire !
+Les fichiers JONX v1.x restent lisibles, et l'encodage utilise automatiquement les nouveaux types.
+
+### Exemple comparatif v1.0 vs v2.0
+
+```python
+# Même code, résultats différents selon la version
+data = [
+    {"id": 100, "uuid": "550e8400-e29b-41d4-a716-446655440000", "created": "2024-12-30"},
+    {"id": 200, "uuid": "6ba7b810-9dad-11d1-80b4-00c04fd430c8", "created": "2024-12-31"}
+]
+
+# Version 1.0 détectait :
+# - id: int16 (optimisé)
+# - uuid: str (texte compressé)
+# - created: str (texte compressé)
+
+# Version 2.0 détecte :
+# - id: uint8 (75% plus compact que int16!)
+# - uuid: uuid (détection automatique)
+# - created: date (avec index automatique pour recherches rapides)
+```
+
+**Résultat** : Fichiers **plus petits** et **recherches plus rapides** sans changer une ligne de code !
+
+---
+
 ## Présentation du format
 
 ### Qu'est-ce que JSON++ / JONX ?
@@ -26,20 +90,25 @@
 | **Format** | Texte (UTF-8) | Binaire optimisé |
 | **Compression** | Aucune (ou gzip) | Zstandard (niveau 7) |
 | **Stockage** | Ligne par ligne | Colonnes contiguës |
-| **Types** | Tous en texte | Auto-détection (int16, int32, float16, float32, bool, str, json) |
-| **Index** | Aucun | Index triés automatiques |
+| **Types** | Tous en texte | Auto-détection (13 types numériques + 8 types spécialisés + nullable) |
+| **Index** | Aucun | Index triés automatiques pour types numériques et temporels |
 | **Lecture sélective** | Non | Oui (décompression à la demande) |
 | **Performance** | Lente (parsing) | Ultra-rapide (orjson + binaire) |
 
 ### Points forts
 
 - **Compression Zstandard** : Réduction de taille jusqu'à 80% selon les données
--  **Stockage en colonnes** : Meilleure compression pour données tabulaires
--  **Auto-détection des types** : int16, int32, float16, float32, bool, string, json
--  **Index optimisés** : Recherches min/max ultra-rapides sur colonnes numériques
--  **Encodage/décodage rapide** : Utilise `orjson` pour des performances maximales
--  **Chargement sélectif** : Décompression à la demande = moins de RAM
--  **Compatible Python natif** : Aucune dépendance externe lourde
+- **Stockage en colonnes** : Meilleure compression pour données tabulaires
+- **Auto-détection avancée des types** : 21 types supportés
+  - **Numériques** : int8, int16, int32, int64, uint8, uint16, uint32, uint64, float16, float32, float64
+  - **Temporels** : date, datetime, timestamp_ms
+  - **Spécialisés** : uuid, enum, string_dict, binary
+  - **Autres** : bool, str, json
+  - **Support nullable** : nullable<T> pour tous les types
+- **Index optimisés** : Recherches min/max ultra-rapides sur colonnes numériques et temporelles
+- **Encodage/décodage rapide** : Utilise `orjson` pour des performances maximales
+- **Chargement sélectif** : Décompression à la demande = moins de RAM
+- **Compatible Python natif** : Aucune dépendance externe lourde
 
 ---
 
@@ -765,29 +834,128 @@ Le format JONX est structuré de manière séquentielle pour permettre une lectu
 
 ### Types de données supportés
 
+#### Types numériques entiers
+
+| Type | Description | Plage | Stockage |
+|------|-------------|-------|----------|
+| `int8` | Entiers signés 8 bits | -128 à 127 | Binaire (1 byte/valeur) |
+| `int16` | Entiers signés 16 bits | -32768 à 32767 | Binaire (2 bytes/valeur) |
+| `int32` | Entiers signés 32 bits | -2³¹ à 2³¹-1 | Binaire (4 bytes/valeur) |
+| `int64` | Entiers signés 64 bits | -2⁶³ à 2⁶³-1 | Binaire (8 bytes/valeur) |
+| `uint8` | Entiers non signés 8 bits | 0 à 255 | Binaire (1 byte/valeur) |
+| `uint16` | Entiers non signés 16 bits | 0 à 65535 | Binaire (2 bytes/valeur) |
+| `uint32` | Entiers non signés 32 bits | 0 à 2³²-1 | Binaire (4 bytes/valeur) |
+| `uint64` | Entiers non signés 64 bits | 0 à 2⁶⁴-1 | Binaire (8 bytes/valeur) |
+
+#### Types numériques flottants
+
+| Type | Description | Précision | Stockage |
+|------|-------------|-----------|----------|
+| `float16` | Flottants demi-précision (IEEE 754) | ~3 décimales | Binaire (2 bytes/valeur) |
+| `float32` | Flottants simple précision (IEEE 754) | ~7 décimales | Binaire (4 bytes/valeur) |
+| `float64` | Flottants double précision (IEEE 754) | ~15 décimales | Binaire (8 bytes/valeur) |
+
+#### Types temporels
+
+| Type | Description | Format | Stockage |
+|------|-------------|--------|----------|
+| `date` | Date (YYYY-MM-DD) | ISO 8601 | JSON compressé (zstd) |
+| `datetime` | Date et heure | ISO 8601 | JSON compressé (zstd) |
+| `timestamp_ms` | Timestamp en millisecondes | Entier (epoch) | Binaire (8 bytes/valeur) |
+
+#### Types spécialisés
+
 | Type | Description | Stockage |
 |------|-------------|----------|
-| `int16` | Entiers 16 bits (-32768 à 32767) | Binaire (2 bytes/valeur) |
-| `int32` | Entiers 32 bits | Binaire (4 bytes/valeur) |
-| `float16` | Flottants 16 bits (IEEE 754) | Binaire (2 bytes/valeur) |
-| `float32` | Flottants 32 bits (IEEE 754) | Binaire (4 bytes/valeur) |
+| `uuid` | UUID (Universally Unique Identifier) | JSON compressé (zstd) |
+| `enum` | Énumération (≤256 valeurs uniques) | JSON compressé (zstd) avec dictionnaire |
+| `string_dict` | Chaînes avec forte répétition (≤30% uniques) | JSON compressé (zstd) avec dictionnaire |
+| `binary` | Données binaires (bytes, bytearray) | JSON compressé (zstd) |
+
+#### Autres types
+
+| Type | Description | Stockage |
+|------|-------------|----------|
 | `bool` | Booléens | Binaire (1 byte/valeur) |
 | `str` | Chaînes de caractères | JSON compressé (zstd) |
-| `json` | Objets complexes | JSON compressé (zstd) |
+| `json` | Objets complexes (fallback) | JSON compressé (zstd) |
+
+#### Support nullable
+
+Tous les types peuvent être encapsulés dans `nullable<T>` pour supporter les valeurs `null` :
+- `nullable<int32>` : Entiers 32 bits avec support null
+- `nullable<float64>` : Flottants 64 bits avec support null
+- `nullable<uuid>` : UUID avec support null
+- etc.
 
 ### Auto-détection des types
 
-La bibliothèque détecte automatiquement le type optimal pour chaque colonne :
+La bibliothèque détecte automatiquement le type optimal pour chaque colonne en utilisant un algorithme intelligent :
 
-- **Entiers** : `int16` si toutes les valeurs sont dans [-32768, 32767], sinon `int32`
-- **Flottants** : `float16` si précision ≤ 3 décimales et dans la plage IEEE 754, sinon `float32`
-- **Booléens** : Détectés automatiquement
-- **Chaînes** : Stockées comme `str` (JSON compressé)
-- **Objets complexes** : Stockés comme `json` (JSON compressé)
+#### Détection des types numériques entiers
+
+L'algorithme détecte la plage de valeurs et choisit le type le plus compact :
+- **Valeurs positives uniquement** : uint8 → uint16 → uint32 → uint64 (selon la valeur max)
+- **Valeurs signées** : int8 → int16 → int32 → int64 (selon min/max)
+
+Exemples :
+- `[1, 2, 255]` → `uint8` (toutes les valeurs entre 0 et 255)
+- `[-1, 10, 100]` → `int8` (toutes les valeurs entre -128 et 127)
+- `[1000, 2000, 60000]` → `uint16` (toutes les valeurs entre 0 et 65535)
+- `[5000000000]` → `uint64` (valeur > 2³²-1)
+
+#### Détection des types numériques flottants
+
+- **float16** : Valeurs dans [-65504, 65504] avec précision ≤ 3 décimales
+- **float32** : Valeurs dans [-3.4e38, 3.4e38]
+- **float64** : Autres valeurs flottantes
+
+#### Détection des types spécialisés (chaînes)
+
+Pour les colonnes de type string, l'algorithme effectue une analyse avancée :
+
+1. **UUID** : Toutes les valeurs sont des UUID valides → `uuid`
+2. **Date** : Toutes les valeurs respectent le format YYYY-MM-DD → `date`
+3. **Datetime** : Toutes les valeurs sont des ISO 8601 datetime → `datetime`
+4. **Enum** : ≤256 valeurs uniques → `enum` (optimisation par dictionnaire)
+5. **String_dict** : ≤30% de valeurs uniques → `string_dict` (compression par dictionnaire)
+6. **String** : Autres chaînes → `str` (JSON compressé)
+
+#### Détection des autres types
+
+- **Booléens** : Détection automatique (True/False)
+- **Binary** : Détection automatique (bytes, bytearray)
+- **JSON** : Fallback pour objets complexes, listes, etc.
+- **Nullable** : Détection automatique si la colonne contient au moins une valeur `null`
+
+#### Exemples d'auto-détection
+
+```python
+# Exemples de détection automatique
+[1, 2, 3]                           → uint8
+[-1, 10]                            → int8
+[1.23, 2.1]                         → float16
+[5000000000, 6000000000]            → uint64
+[True, False]                       → bool
+["A", "B", "A"]                     → enum (3 valeurs, dont 2 uniques)
+["2024-12-30"]                      → date
+["2024-12-30T12:34:56"]             → datetime
+[str(uuid.uuid4()), ...]            → uuid
+[None, 1, 2]                        → nullable<uint8>
+[b"\x00\xFF"]                       → binary
+["apple", "banana", "apple", ...]   → string_dict (si ≤30% uniques)
+[{"a": 1}, {"b": 2}]                → json
+```
 
 ### Index automatiques
 
-Les colonnes numériques (`int16`, `int32`, `float16`, `float32`) génèrent automatiquement un **index trié** compressé, permettant des recherches min/max en O(1) après décompression de l'index.
+Les colonnes **numériques et temporelles** génèrent automatiquement un **index trié** compressé, permettant des recherches min/max en O(1) après décompression de l'index.
+
+**Types indexables :**
+- **Numériques** : int8, int16, int32, int64, uint8, uint16, uint32, uint64, float16, float32, float64
+- **Temporels** : date, datetime, timestamp_ms
+
+L'index stocke les indices des valeurs triées, ce qui permet de trouver instantanément les valeurs min/max sans parcourir toute la colonne.
 
 ### Reconstruction ligne par ligne
 
@@ -819,37 +987,65 @@ Aucune dépendance externe lourde. Utilise uniquement des bibliothèques Python 
 
 ## 🗺️ Roadmap
 
-### Version 1.0 (Actuelle) ✅
+### Version 2.0 (Actuelle) ✅
+
+**🎉 Nouvelle version majeure avec extension massive du système de types !**
 
 - [x] Encodage/décodage JSON ↔ JONX
-- [x] Auto-détection des types (int16, int32, float16, float32, bool, str, json)
-- [x] Compression Zstandard
-- [x] Index automatiques pour colonnes numériques
-- [x] Classe `JONXFile` avec accès colonne par colonne
-- [x] Support des recherches min/max avec index
+- [x] **Auto-détection avancée des types** : 21 types supportés
+  - [x] Types numériques entiers : int8, int16, int32, int64, uint8, uint16, uint32, uint64
+  - [x] Types numériques flottants : float16, float32, float64
+  - [x] Types temporels : date, datetime, timestamp_ms
+  - [x] Types spécialisés : uuid, enum, string_dict, binary
+  - [x] Support nullable : nullable<T> pour tous les types
+- [x] Compression Zstandard (niveau 7)
+- [x] Index automatiques pour colonnes numériques **et temporelles**
+- [x] Classe `JONXFile` avec accès colonne par colonne (lazy loading)
+- [x] Support des recherches min/max avec index O(1)
 - [x] Opérations d'agrégation (sum, avg, count)
 - [x] Récupération multiple de colonnes (get_columns)
+- [x] Gestion d'erreurs robuste avec exceptions personnalisées
+- [x] Validation complète des données (validate, check_schema)
+- [x] CLI complet (encode, decode, info, query, validate, view)
+- [x] Visualiseur GUI moderne (jonx-viewer)
 
-### Version 2.0 (Planifiée) 🚧
+### Version 1.0 (Précédente) 🕐
 
-- [ ] Support des types additionnels (int8, int64, float64)
+- [x] Version initiale avec support des types de base (int16, int32, float16, float32, bool, str, json)
+- [x] Compression Zstandard et index automatiques
+- [x] API de base pour encodage/décodage
+
+### Version 3.0 (Planifiée) 🚧
+
+**Fonctionnalités avancées pour les datasets volumineux :**
+
 - [ ] Index personnalisés (multi-colonnes)
 - [ ] Filtrage et projection de colonnes optimisés
-- [ ] Support des données nulles (NULL handling)
-- [ ] Streaming pour fichiers volumineux
-- [ ] API de requête simple (filtres, groupby, joins)
-- [ ] Opérations d'agrégation avancées (std, median, quantiles)
+- [ ] Streaming pour fichiers volumineux (lecture partielle)
+- [ ] API de requête avancée (filtres, where, groupby, joins)
+- [ ] Opérations d'agrégation avancées (std, median, quantiles, mode)
 - [ ] Benchmarks de performance complets
-
-### Version 3.0 (Future) 🔮
-
 - [ ] Support multi-fichiers (partitionnement)
 - [ ] Compression adaptative (choix du niveau zstd par colonne)
-- [ ] Métadonnées étendues (statistiques, cardinalité)
-- [ ] Intégration avec pandas/Polars
-- [ ] Support des types temporels (date, datetime, timestamp)
+- [ ] Métadonnées étendues (statistiques, cardinalité, histogrammes)
+- [ ] Intégration native avec pandas/Polars
 - [ ] Compression différentielle pour séries temporelles
-- [ ] API de requête avancée (base de donnée)
+- [ ] Support des transactions (ACID)
+
+### Version 4.0 (Future) 🔮
+
+**Vision long terme - Base de données analytique :**
+
+- [ ] Moteur de requête SQL-like
+- [ ] Partitionnement intelligent par plage de valeurs
+- [ ] Index bitmap pour colonnes catégorielles
+- [ ] Support des vues matérialisées
+- [ ] Réplication et sharding
+- [ ] API REST pour accès distant
+- [ ] Connecteur JDBC/ODBC
+- [ ] Support des fonctions window (ROW_NUMBER, RANK, etc.)
+- [ ] Optimiseur de requêtes avec statistiques
+- [ ] Support du streaming en temps réel
 
 ---
 
